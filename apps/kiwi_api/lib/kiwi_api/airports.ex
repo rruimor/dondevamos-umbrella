@@ -4,7 +4,8 @@ defmodule KiwiApi.Airports do
   def by_location(location) do
     params = %{
       term: location,
-      location_types: "airport"
+      location_types: "airport",
+      limit: 5
     }
     fetch!("/locations", params).body
   end

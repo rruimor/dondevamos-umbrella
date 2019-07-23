@@ -5,10 +5,10 @@ defmodule KiwiApi.Flights do
   @doc """
     date_from: "dd/mm/YYYY"
   """
-  def search(fly_from, to, date_from, date_to, extra_params \\ %{}) do
+  def search(%{fly_from: fly_from, fly_to: fly_to, date_from: date_from, date_to: date_to}, extra_params \\ %{}) do
     params = %{
       fly_from: fly_from,
-      to: to,
+      to: fly_to,
       date_from: date_from,
       date_to: date_to
     }
@@ -16,7 +16,7 @@ defmodule KiwiApi.Flights do
     fetch!("/flights", params |> camelize_params()).body["data"]
   end
 
-  def search(params) do
-    fetch!("/flights", params |> camelize_params()).body["data"]
-  end
+#  def search(params) do
+#    fetch!("/flights", params |> camelize_params()).body["data"]
+#  end
 end
