@@ -27,7 +27,6 @@ defmodule KiwiApi.Mixfile do
   defp deps do
     [
       {:httpoison, "~> 1.5"},
-      {:poison, "~> 4.0"},
       {:proper_case, "~> 1.3"},
       {:statistics, "~> 0.6"}
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
