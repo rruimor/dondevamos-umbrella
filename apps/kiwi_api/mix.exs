@@ -9,7 +9,7 @@ defmodule KiwiApi.Mixfile do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       start_permanent: Mix.env == :prod,
       deps: deps()
     ]
@@ -26,10 +26,10 @@ defmodule KiwiApi.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.0.0"},
-      {:poison, "~> 3.1"},
-      {:proper_case, "~> 1.1"},
-      {:statistics, "~> 0.5.0"}
+      {:httpoison, "~> 1.5"},
+      {:poison, "~> 4.0"},
+      {:proper_case, "~> 1.3"},
+      {:statistics, "~> 0.6"}
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
       # {:sibling_app_in_umbrella, in_umbrella: true},
     ]
