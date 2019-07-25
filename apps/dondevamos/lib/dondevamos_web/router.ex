@@ -7,10 +7,15 @@ defmodule DondevamosWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug DondevamosWeb.Plugs.SetUser
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :auth do
+    plug DondevamosWeb.Plugs.RequireAuth
   end
 
   scope "/auth", DondevamosWeb do
@@ -19,7 +24,13 @@ defmodule DondevamosWeb.Router do
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/:provider/callback", AuthController, :callback
-    post "/logout", AuthController, :delete
+    delete "/logout", AuthController, :delete
+  end
+
+  scope "/yolo", DondevamosWeb do
+    pipe_through [:browser, :auth]
+
+    get "/", PageController, :yolo
   end
 
   scope "/", DondevamosWeb do

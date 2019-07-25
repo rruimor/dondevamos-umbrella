@@ -15,9 +15,15 @@
             <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
           </ul>
         </nav>
-        <a href="http://phoenixframework.org/" class="phx-logo">
-          <img src="<%= Routes.static_path(@conn, "/images/phoenix.png") %>" alt="Phoenix Framework Logo"/>
-        </a>
+        <h3>Donde Vamos ?</h3>
+        <%= if @current_user do %>
+          <p><%= @current_user.email %></p>
+          <%= link to: Routes.auth_path(@conn, :delete), method: :delete do %>
+            <img src="<%= @current_user.avatar_url %>" alt="Phoenix Framework Logo"/>
+          <% end %>
+        <% else %>
+          <%= button "Login with Google", to: Routes.auth_path(@conn, :request, :google), method: :get %>
+        <% end %>
       </section>
     </header>
     <main role="main" class="container">

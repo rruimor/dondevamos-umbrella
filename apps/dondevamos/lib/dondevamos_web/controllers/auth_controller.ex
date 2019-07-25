@@ -15,7 +15,7 @@ defmodule DondevamosWeb.AuthController do
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "You have been logged out!")
-    |> configure_session(drop: true)
+    |> clear_session()
     |> redirect(to: "/")
   end
 
@@ -37,13 +37,15 @@ defmodule DondevamosWeb.AuthController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "Successfully authenticated.")
-        |> put_session(:current_user, user)
+        |> assign(:current_user, user)
+        |> put_session("id", user.id)
         |> configure_session(renew: true)
         |> redirect(to: "/")
       {:error, reason} ->
         conn
         |> put_flash(:error, reason)
         |> redirect(to: "/")
+        |> halt()
     end
   end
 end
