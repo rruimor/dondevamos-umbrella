@@ -5,25 +5,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Dondevamos · Phoenix Framework</title>
+    <link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
   </head>
   <body>
     <header>
       <section class="container">
+        <div class="row">
+            <img src="<%= Routes.static_path(@conn, "/images/icon-small.png") %>" alt="" class="dondevamos-logo">
+            <h1 class="logo-font">¿Dónde vamos?</h1>
+        </div>
         <nav role="navigation">
           <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
+            <li>
+                <%= if @current_user do %>
+                  <%= button "Sign out", to: Routes.auth_path(@conn, :delete), method: :delete%>
+                  <% else %>
+                      <%= button "Login with Google", to: Routes.auth_path(@conn, :request, :google), method: :get %>
+                <% end %>
+            </li>
           </ul>
         </nav>
-        <h3>Donde Vamos ?</h3>
-        <%= if @current_user do %>
-          <p><%= @current_user.email %></p>
-          <%= link to: Routes.auth_path(@conn, :delete), method: :delete do %>
-            <img src="<%= @current_user.avatar_url %>" alt="Phoenix Framework Logo"/>
-          <% end %>
-        <% else %>
-          <%= button "Login with Google", to: Routes.auth_path(@conn, :request, :google), method: :get %>
-        <% end %>
       </section>
     </header>
     <main role="main" class="container">

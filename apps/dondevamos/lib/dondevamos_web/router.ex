@@ -27,10 +27,10 @@ defmodule DondevamosWeb.Router do
     delete "/logout", AuthController, :delete
   end
 
-  scope "/yolo", DondevamosWeb do
+  scope "/home", DondevamosWeb do
     pipe_through [:browser, :auth]
 
-    get "/", PageController, :yolo
+    get "/", PageController, :home
   end
 
   scope "/", DondevamosWeb do

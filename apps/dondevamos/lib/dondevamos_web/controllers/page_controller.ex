@@ -5,7 +5,7 @@ defmodule DondevamosWeb.PageController do
     render(conn, "index.html")
   end
 
-  def yolo(conn, _params) do
-    render(conn, "index.html")
+  def home(conn, _params) do
+    render(conn, "home.html")
   end
 end

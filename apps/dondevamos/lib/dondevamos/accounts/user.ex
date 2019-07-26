@@ -7,6 +7,8 @@ defmodule Dondevamos.Accounts.User do
     field :email, :string
     field :provider, :string
     field :token, :string
+    field :first_name, :string
+    field :last_name, :string
 
     timestamps()
   end
@@ -14,7 +16,7 @@ defmodule Dondevamos.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :provider, :token, :avatar_url])
-    |> validate_required([:email, :provider, :token, :avatar_url])
+    |> cast(attrs, [:email, :provider, :token, :avatar_url, :first_name, :last_name])
+    |> validate_required([:email, :provider, :token, :avatar_url, :first_name, :last_name])
   end
 end

@@ -37,7 +37,6 @@ defmodule Dondevamos.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
-
   def find_or_create_user(%{email: email} = attrs) do
       case Repo.get_by(User, email: email) do
         nil ->

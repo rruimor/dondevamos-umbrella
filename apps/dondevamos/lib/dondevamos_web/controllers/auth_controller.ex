@@ -30,7 +30,9 @@ defmodule DondevamosWeb.AuthController do
       token: auth.credentials.token,
       email: auth.info.email,
       provider: auth.provider |> to_string,
-      avatar_url: auth.info.image
+      avatar_url: auth.info.image,
+      first_name: auth.info.first_name,
+      last_name: auth.info.last_name
     }
 
     case Dondevamos.Accounts.find_or_create_user(user_params) do
@@ -40,7 +42,7 @@ defmodule DondevamosWeb.AuthController do
         |> assign(:current_user, user)
         |> put_session("id", user.id)
         |> configure_session(renew: true)
-        |> redirect(to: "/")
+        |> redirect(to: Routes.page_path(conn, :home))
       {:error, reason} ->
         conn
         |> put_flash(:error, reason)
