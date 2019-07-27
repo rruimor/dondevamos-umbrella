@@ -1,6 +1,8 @@
 defmodule DondevamosWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :dondevamos
 
+  socket "/live", Phoenix.LiveView.Socket
+
   socket "/socket", DondevamosWeb.UserSocket,
     websocket: true,
     longpoll: false

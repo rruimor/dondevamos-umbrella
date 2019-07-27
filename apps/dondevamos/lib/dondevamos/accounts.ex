@@ -7,6 +7,7 @@ defmodule Dondevamos.Accounts do
   alias Dondevamos.Repo
 
   alias Dondevamos.Accounts.User
+  alias Dondevamos.Trips.Trip
 
   @doc """
   Returns the list of users.
@@ -35,7 +36,11 @@ defmodule Dondevamos.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(:trips)
+  end
 
   def find_or_create_user(%{email: email} = attrs) do
       case Repo.get_by(User, email: email) do
@@ -79,6 +84,7 @@ defmodule Dondevamos.Accounts do
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
+    |> Ecto.Changeset.cast_assoc(:trips, with: &Trip.changeset/2)
     |> Repo.update()
   end
 

@@ -1,0 +1,13 @@
+<h1>Show Trip</h1>
+
+<ul>
+
+  <li>
+    <strong>Name:</strong>
+    <%= @trip.name %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: Routes.trip_path(@conn, :edit, @trip) %></span>
+<span><%= link "Back", to: Routes.trip_path(@conn, :index) %></span>

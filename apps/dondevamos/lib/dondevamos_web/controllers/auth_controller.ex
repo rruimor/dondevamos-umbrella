@@ -42,7 +42,7 @@ defmodule DondevamosWeb.AuthController do
         |> assign(:current_user, user)
         |> put_session("id", user.id)
         |> configure_session(renew: true)
-        |> redirect(to: Routes.page_path(conn, :home))
+        |> redirect(to: Routes.trip_path(conn, :index))
       {:error, reason} ->
         conn
         |> put_flash(:error, reason)

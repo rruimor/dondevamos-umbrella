@@ -13,7 +13,7 @@
       <section class="container">
         <div class="row">
             <img src="<%= Routes.static_path(@conn, "/images/icon-small.png") %>" alt="" class="dondevamos-logo">
-            <h1 class="logo-font">¿Dónde vamos?</h1>
+            <h1 class="logo-font">¿Dónde Vamos?</h1>
         </div>
         <nav role="navigation">
           <ul>

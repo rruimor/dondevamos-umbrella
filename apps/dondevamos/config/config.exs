@@ -15,7 +15,10 @@ config :dondevamos, DondevamosWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "/LUOcZDYTRCQbiuBM+lV21PLpM09FcyP01zmpJWIa9QSwAVEN9LJByEo1fbfBEs3",
   render_errors: [view: DondevamosWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Dondevamos.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Dondevamos.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [
+    signing_salt: "XGdKEY66wcXz3lHB/dNpt5NSxliUNNCc"
+  ]
 
 # Configures Elixir's Logger
 config :logger, :console,

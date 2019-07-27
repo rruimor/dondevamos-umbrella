@@ -2,6 +2,8 @@ defmodule Dondevamos.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Dondevamos.Trips.Trip
+
   schema "users" do
     field :avatar_url, :string
     field :email, :string
@@ -9,6 +11,7 @@ defmodule Dondevamos.Accounts.User do
     field :token, :string
     field :first_name, :string
     field :last_name, :string
+    has_many :trips, Trip
 
     timestamps()
   end

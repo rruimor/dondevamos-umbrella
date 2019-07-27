@@ -1,10 +1,2 @@
-<section class="phx-hero">
-  <h1><%= gettext "Welcome to %{name}", name: "" %><span class="logo-font">Dónde Vamos</span>!</h1>
-  <p><span class="logo-font">Dónde Vamos</span> helps people to find flights from multiple origins to common destinations.</p>
-</section>
+<%= live_render(@conn, DondevamosWeb.AirportSearchLive) %>
 
-<section>
-<img src="<%= Routes.static_path(@conn, "/images/boarding-unsplash.jpg") %>" alt="">
-<p>Photo by Elizabeth French on Unsplash</p>
-<!-- <img src="<%= Routes.static_path(@conn, "/images/europe-map.jpg") %>" alt=""> -->
-</section>

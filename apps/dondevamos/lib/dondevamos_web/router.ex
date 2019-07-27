@@ -5,6 +5,7 @@ defmodule DondevamosWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
+    plug Phoenix.LiveView.Flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug DondevamosWeb.Plugs.SetUser
@@ -27,10 +28,16 @@ defmodule DondevamosWeb.Router do
     delete "/logout", AuthController, :delete
   end
 
-  scope "/home", DondevamosWeb do
+  scope "/trips", DondevamosWeb do
     pipe_through [:browser, :auth]
 
-    get "/", PageController, :home
+    get "/", TripController, :index
+    post "/", TripController, :create
+    get "/new", TripController, :new
+    get "/:id", TripController, :show
+    put "/:id", TripController, :update
+    get "/:id/edit", TripController, :edit
+    delete "/:id", TripController, :delete
   end
 
   scope "/", DondevamosWeb do
