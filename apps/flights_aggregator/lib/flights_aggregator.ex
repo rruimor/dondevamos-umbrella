@@ -43,26 +43,17 @@ defmodule FlightsAggregator do
   end
 
   defp fetch_flights(origin, departure_date) do
-    formatted_date = departure_date |> format_date
-
     KiwiApi.Flights.search(
       %{
         fly_from: origin,
         fly_to: "",
-        date_from: formatted_date,
-        date_to: formatted_date
+        date_from: departure_date,
+        date_to: departure_date
       },
       %{
         oneforcity: 1,
         direct_flights: 1
       }
     )
-  end
-
-  defp format_date(date) do
-    [date.day, date.month, date.year]
-    |> Enum.map(&to_string/1)
-    |> Enum.map(&String.pad_leading(&1, 2, "0"))
-    |> Enum.join("/")
   end
 end
