@@ -31,6 +31,7 @@
   "postgrex": {:hex, :postgrex, "0.15.0", "dd5349161019caeea93efa42f9b22f9d79995c3a86bdffb796427b4c9863b0f0", [:mix], [{:connection, "~> 1.0", [hex: :connection, repo: "hexpm", optional: false]}, {:db_connection, "~> 2.1", [hex: :db_connection, repo: "hexpm", optional: false]}, {:decimal, "~> 1.5", [hex: :decimal, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm"},
   "proper_case": {:hex, :proper_case, "1.3.0", "aea76589db691f4f9dd69b13ab951f268ba5dc9b4ffe7c8aff0dcce04d3be55c", [:mix], [], "hexpm"},
   "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm"},
+  "retry": {:hex, :retry, "0.13.0", "bb9b2713f70f39337837852337ad280c77662574f4fb852a8386c269f3d734c4", [:mix], [], "hexpm"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.4", "f0eafff810d2041e93f915ef59899c923f4568f4585904d010387ed74988e77b", [:make, :mix, :rebar3], [], "hexpm"},
   "statistics": {:hex, :statistics, "0.6.1", "dd8a400984bc3f223ff1b0f3dcdf193d3ec3a755bc810a7b08eadd8021516399", [:mix], [], "hexpm"},
   "telemetry": {:hex, :telemetry, "0.4.0", "8339bee3fa8b91cb84d14c2935f8ecf399ccd87301ad6da6b71c09553834b2ab", [:rebar3], [], "hexpm"},

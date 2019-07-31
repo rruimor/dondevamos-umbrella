@@ -1,5 +1,6 @@
 defmodule KiwiApi.Client do
   use HTTPoison.Base
+  use Retry
 
   def process_url(url) do
     "https://api.skypicker.com" <> url
@@ -12,6 +13,12 @@ defmodule KiwiApi.Client do
   end
 
   def fetch!(url, params) do
-    get!(url, [], params: params)
+    retry with: exponential_backoff() |> cap(1_000) |> expiry(1_000) do
+      get!(url, [], params: params)
+    after
+      result -> result
+    else
+      error -> error
+    end
   end
 end

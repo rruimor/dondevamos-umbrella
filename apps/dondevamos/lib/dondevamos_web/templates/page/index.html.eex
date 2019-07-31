@@ -1,2 +1,4 @@
-<%= live_render(@conn, DondevamosWeb.AirportSearchLive) %>
+<section>
+    <%= live_render(@conn, DondevamosWeb.AirportSearchLive) %>
+</section>
 

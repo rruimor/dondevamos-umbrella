@@ -4,21 +4,24 @@ defmodule DondevamosWeb.AirportSearchLive do
   def render(assigns) do
     ~L"""
     <form phx-change="suggest" phx-submit="search">
-      <label>Origin
-      <input type="text"
-             name="origin"
-             value="<%= @origin %>"
-             list="matches"
-             placeholder="Origin..."
-             phx-blur="set_origin"
-             <%= if @loading, do: "readonly" %>
-      />
-      <datalist id="matches">
-        <%= for match <- @matches do %>
+      <%= for {index, origin} <- @origins do %>
+        <label>Origin
+        <input type="text"
+               name="origin[]"
+               value="<%= origin %>"
+               list="<%= "matches_#{index}" %>"
+               placeholder="Origin..."
+               <%= if @loading, do: "readonly" %>>
+        <datalist id="<%= "matches_#{index}" %>">
+          <%= for match <- Map.get(@matches, index) do %>
           <option value="<%= "#{match["id"]}" %>"><%= "#{match["name"]} #{match["id"]}" %></option>
-        <% end %>
-      </datalist>
-      </label>
+          <% end %>
+        </datalist>
+        </label>
+      <% end %>
+
+      <button phx-click="add_input" phx-value="<%= @origins |> length %>">Add Input</button>
+
       <label>Departure
         <input type="date"
                id="outbound_date"
@@ -43,20 +46,39 @@ defmodule DondevamosWeb.AirportSearchLive do
   end
 
   def mount(_session, socket) do
-    {:ok, assign(socket, origin: nil, outbound_date: nil, results: [], loading: false, matches: [])}
+    {:ok, assign(socket, origins: [{0, nil}], outbound_date: nil, results: [], loading: false, matches: %{0 => []})}
   end
 
-  def handle_event("suggest", %{"origin" => origin}, socket) when byte_size(origin) <= 100 do
+  def handle_event("suggest", %{"origin" => [origin]}, socket) when byte_size(origin) <= 100 do
     locations =
-      KiwiApi.Airports.by_location(origin)
-      |> Map.get("locations")
-      |> Enum.map(fn location -> location |> Map.take(["id", "name", "city"]) end)
+      get_locations(origin)
+    {:noreply, assign(socket, matches: %{0 => locations})}
+  end
+
+  def handle_event("suggest", %{"origin" => [origin | tail]}, socket) when byte_size(origin) <= 100 do
+    locations = %{}
+
+     [origin | tail]
+      |> Enum.with_index
+      |> Enum.each(fn {value, index} -> Map.put(locations, index, value) end)
 
     {:noreply, assign(socket, matches: locations)}
   end
 
+  defp get_locations(origin) do
+    KiwiApi.Airports.by_location(origin)
+    |> Map.get("locations")
+    |> Enum.map(fn location -> location |> Map.take(["id", "name", "city"]) end)
+  end
+
   def handle_event("set_origin", value, socket) do
     {:noreply, assign(socket, origin: value)}
+  end
+
+  def handle_event("add_input", value, socket) do
+    [{index, _v} | last] = socket.assigns.origins
+    origins = [{index + 1, nil} | socket.assigns.origins]
+    {:noreply, assign(socket, origins: origins, matches: socket.assigns.matches |> Map.put(index + 1, []))}
   end
 
   def handle_event("search", form, socket) do
@@ -77,7 +99,6 @@ defmodule DondevamosWeb.AirportSearchLive do
 
     results =
       KiwiApi.Flights.search(flight_query, %{direct_flights: 1})
-      |> IO.inspect()
 
     {:noreply, assign(socket, loading: false, results: results, matches: [])}
   end
