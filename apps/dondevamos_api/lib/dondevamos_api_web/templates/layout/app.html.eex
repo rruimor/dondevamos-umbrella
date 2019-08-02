@@ -4,20 +4,17 @@
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>DondevamosApi · Phoenix Framework</title>
+    <title>Dondevamos</title>
+    <link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
   </head>
   <body>
     <header>
       <section class="container">
-        <nav role="navigation">
-          <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-          </ul>
-        </nav>
-        <a href="http://phoenixframework.org/" class="phx-logo">
-          <img src="<%= Routes.static_path(@conn, "/images/phoenix.png") %>" alt="Phoenix Framework Logo"/>
-        </a>
+          <div class="row">
+              <img src="<%= Routes.static_path(@conn, "/images/icon-small.png") %>" alt="" class="dondevamos-logo">
+              <h1 class="logo-font">¿Dónde Vamos?</h1>
+          </div>
       </section>
     </header>
     <div id="elm-main"></div>
