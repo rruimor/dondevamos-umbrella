@@ -36,7 +36,7 @@ type alias SearchParams =
 type SearchResult
     = Failure
     | Loading
-    | Success String
+    | Success (List FlightResult)
 
 
 init : () -> (Model, Cmd Msg)
@@ -54,65 +54,52 @@ type Msg
   | RemoveOrigin Int
   | UpdateDepartureDate String
   | SearchFlights
-  | GotFlights (Result Http.Error String)
+  | GotFlights (Result Http.Error (List FlightResult))
   | NoOp
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
+  let
+    formParams =
+        case model of
+            NoSearch searchParams ->
+                searchParams
+
+            WithSearch searchParams _ ->
+                searchParams
+
+  in
   case msg of
     UpdateOrigin index origin ->
-        case model of
-            NoSearch searchParams ->
-                (NoSearch { searchParams | origins = set index origin searchParams.origins }, Cmd.none)
-            WithSearch searchParams _ ->
-                (NoSearch { searchParams | origins = set index origin searchParams.origins }, Cmd.none)
+        (NoSearch { formParams | origins = set index origin formParams.origins }, Cmd.none)
 
     AddOrigin ->
-        case model of
-            NoSearch searchParams ->
-                (NoSearch { searchParams | origins = push "" searchParams.origins }, Cmd.none)
-            WithSearch searchParams _ ->
-                (NoSearch { searchParams | origins = push "" searchParams.origins }, Cmd.none)
-
+        (NoSearch { formParams | origins = push "" formParams.origins }, Cmd.none)
 
     RemoveOrigin index ->
-        case model of
-            NoSearch searchParams ->
-              (NoSearch { searchParams | origins = removeFromArray searchParams.origins index }, Cmd.none)
-            WithSearch searchParams _ ->
-                (NoSearch { searchParams | origins = removeFromArray searchParams.origins index }, Cmd.none)
+        (NoSearch { formParams | origins = removeFromArray formParams.origins index }, Cmd.none)
 
     UpdateDepartureDate newDepartureDate ->
-        case model of
-            NoSearch searchParams ->
-                (NoSearch { searchParams | departureDate = newDepartureDate}, Cmd.none)
-            WithSearch searchParams _ ->
-                (NoSearch { searchParams | departureDate = newDepartureDate}, Cmd.none)
-
+        (NoSearch { formParams | departureDate = newDepartureDate}, Cmd.none)
 
     SearchFlights ->
-        case model of
-            NoSearch searchParams ->
-                (WithSearch searchParams Loading, getFlights searchParams)
-
-            WithSearch searchParams _ ->
-                (WithSearch searchParams Loading, getFlights searchParams)
+        (WithSearch formParams Loading, getFlights formParams)
 
     GotFlights result ->
         case model of
             NoSearch searchParams ->
                 case result of
-                    Ok url ->
-                        (WithSearch searchParams (Success url), Cmd.none)
+                    Ok flights ->
+                        (WithSearch searchParams (Success flights), Cmd.none)
                     Err _ ->
                         (WithSearch searchParams Failure, Cmd.none)
 
 
             WithSearch searchParams _ ->
                 case result of
-                    Ok url ->
-                        (WithSearch searchParams (Success url), Cmd.none)
+                    Ok flights ->
+                        (WithSearch searchParams (Success flights), Cmd.none)
                     Err _ ->
                         (WithSearch searchParams Failure, Cmd.none)
 
@@ -140,12 +127,21 @@ view model =
   case model of
       NoSearch searchParams ->
           div [ class "container" ]
-              [ ul []
+              [ h2 [] [ text "Select origin(s)" ]
+              , ul []
                   ( toIndexedList searchParams.origins |> List.map
                       (\(index, l) -> li []
                           [ div [ style "display" "flex"]
                               [ viewInput "text" "Origin" l (UpdateOrigin index)
-                              , button [ onClick (RemoveOrigin index) ] [ text "X" ]
+                              , if length searchParams.origins > 1 then
+                                    (button [ onClick (RemoveOrigin index) ] [ text "X" ])
+                                else
+                                    (button
+                                        [ attribute "disabled" ""
+                                        , onClick (NoOp) ]
+                                        [ text "X"
+                                        ]
+                                    )
                               ]
                           ]
                       )
@@ -157,29 +153,65 @@ view model =
 
       WithSearch searchParams searchResult ->
           div [ class "container" ]
-              [ ul []
+              [ h2 [] [ text "Select origin(s)" ]
+              , ul []
                     ( toIndexedList searchParams.origins |> List.map
                         (\(index, l) -> li []
                             [ div [ style "display" "flex"]
                                 [ viewInput "text" "Origin" l (UpdateOrigin index)
-                                , button [ onClick (RemoveOrigin index) ] [ text "X" ]
-                                ]
+                                , if length searchParams.origins > 1 then
+                                    (button [ onClick (RemoveOrigin index) ] [ text "X" ])
+                                else
+                                    (button
+                                        [ attribute "disabled" ""
+                                        , onClick (NoOp) ]
+                                        [ text "X"
+                                        ]
+                                    )
+                              ]
                             ]
                         )
                     )
               , button [ onClick AddOrigin ] [ text "Add origin" ]
-              , viewInput "text" "Departure Date" searchParams.departureDate UpdateDepartureDate
+              , viewInput "date" "Departure Date" searchParams.departureDate UpdateDepartureDate
               , button [ onClick SearchFlights ] [ text "Search flights!" ]
-              , div []
+              , div [ style "margin-top" "20px" ]
                 [ case searchResult of
                     Failure ->
                         text "Something went wrong!"
 
                     Loading ->
-                        text "Loading!"
+                        div [ class "lds-roller" ]
+                            [ div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            , div []
+                                []
+                            ]
 
-                    Success string ->
-                        text string
+                    Success results ->
+                        div []
+                        [ h2 [] [ text "Found combined flights" ]
+                        , ul []
+                            (List.map
+                                (\result -> li []
+                                    [ div []
+                                        [ p [] [ text (result.destination ++ " -> " ++ (String.fromFloat result.totalPrice) ++ " EUR") ]
+                                        ]
+                                    ]
+                                ) results)
+                        ]
                 ]
               ]
 
@@ -187,7 +219,7 @@ view model =
 
 viewInput : String -> String -> String -> (String -> msg) -> Html msg
 viewInput t p v toMsg =
-  input [ type_ t, placeholder p, value v, onInput toMsg ] []
+  input [ type_ t, name p, placeholder p, value v, onInput toMsg ] []
 
 
 
@@ -197,7 +229,8 @@ getFlights : SearchParams -> Cmd Msg
 getFlights searchParams =
     Http.get
     { url = absolute [ "api", "flights" ] [] ++ getFlightsParams searchParams
-    , expect = Http.expectJson GotFlights flightsDecoder}
+    , expect = Http.expectJson GotFlights flightsResponseDecoder
+    }
 
 
 getFlightsParams : SearchParams -> String
@@ -207,6 +240,20 @@ getFlightsParams searchParams =
     |> toQuery
 
 
-flightsDecoder : Decoder String
-flightsDecoder =
-    field "data" (field "yolo" Json.Decode.string)
+flightsResponseDecoder : Decoder (List FlightResult)
+flightsResponseDecoder =
+    field "data" (Json.Decode.list flightDecoder)
+
+type alias FlightResult =
+    { destination: String
+    , totalPrice: Float
+    , averagePrice: Float
+    }
+
+flightDecoder : Decoder FlightResult
+flightDecoder =
+    Json.Decode.map3
+        FlightResult
+            ( field "destination" Json.Decode.string )
+            ( field "total_price" Json.Decode.float )
+            ( field "average_price" Json.Decode.float )

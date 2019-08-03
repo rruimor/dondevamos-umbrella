@@ -24,3 +24,5 @@ erl_crash.dump
 apps/dondevamos/assets/static/images/\.DS_Store
 
 \.DS_Store
+
+apps/dondevamos_api/assets/elm-stuff/

@@ -16,7 +16,7 @@ defmodule DondevamosUmbrella.Mixfile do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:poison, "~> 4.0"},
+      {:jason, "~> 1.1"},
     ]
   end
 end

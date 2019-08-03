@@ -1,5 +1,0 @@
-<h1>Edit Trip</h1>
-
-<%= render "form.html", Map.put(assigns, :action, Routes.trip_path(@conn, :update, @trip)) %>
-
-<span><%= link "Back", to: Routes.trip_path(@conn, :index) %></span>

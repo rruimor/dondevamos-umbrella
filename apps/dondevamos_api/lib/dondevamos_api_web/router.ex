@@ -19,8 +19,9 @@ defmodule DondevamosApiWeb.Router do
     get "/", PageController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", DondevamosApiWeb do
-  #   pipe_through :api
-  # end
+   scope "/api", DondevamosApiWeb do
+     pipe_through :api
+
+     get "/flights", FlightsController, :flights
+   end
 end

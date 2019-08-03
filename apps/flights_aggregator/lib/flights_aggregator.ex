@@ -35,11 +35,13 @@ defmodule FlightsAggregator do
              origins: origins,
              destination: destination,
              flights: flights,
-             departure_date: departure_date
+             departure_date: departure_date,
+             total_price: flights |> CombinedFlights.total_price,
+             average_price: flights |> CombinedFlights.average_price
            }
          end
        )
-    |> Enum.sort(&((&1 |> CombinedFlights.total_price) < (&2 |> CombinedFlights.total_price) ))
+    |> Enum.sort(&((&1.total_price) < (&2.total_price) ))
   end
 
   defp fetch_flights(origin, departure_date) do

@@ -8,7 +8,7 @@ defmodule KiwiApi.Client do
 
   def process_response_body(body) do
     body
-    |> Poison.decode!
+    |> Jason.decode!
     |> ProperCase.to_snake_case
   end
 
