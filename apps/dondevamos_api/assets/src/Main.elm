@@ -1,4 +1,3 @@
-
 import Array exposing (Array, append, length, push, set, slice, toIndexedList, toList)
 import Browser
 import Html exposing (..)
@@ -6,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode exposing (Decoder, field)
+import String exposing (fromChar)
 import Url.Builder exposing (absolute, toQuery)
 
 
@@ -19,6 +19,8 @@ main =
                   , subscriptions = always Sub.none
                   , view = view
                   }
+
+
 
 
 -- MODEL
@@ -42,6 +44,7 @@ type SearchResult
 init : () -> (Model, Cmd Msg)
 init _ =
   (NoSearch (SearchParams (Array.fromList [""]) ""), Cmd.none)
+
 
 
 
@@ -87,28 +90,14 @@ update msg model =
         (WithSearch formParams Loading, getFlights formParams)
 
     GotFlights result ->
-        case model of
-            NoSearch searchParams ->
-                case result of
-                    Ok flights ->
-                        (WithSearch searchParams (Success flights), Cmd.none)
-                    Err _ ->
-                        (WithSearch searchParams Failure, Cmd.none)
-
-
-            WithSearch searchParams _ ->
-                case result of
-                    Ok flights ->
-                        (WithSearch searchParams (Success flights), Cmd.none)
-                    Err _ ->
-                        (WithSearch searchParams Failure, Cmd.none)
-
-
+        case result of
+            Ok flights ->
+                (WithSearch formParams (Success flights), Cmd.none)
+            Err _ ->
+                (WithSearch formParams Failure, Cmd.none)
 
     NoOp ->
            (model, Cmd.none)
-
-
 
 
 removeFromArray : Array a -> Int -> Array a
@@ -119,6 +108,8 @@ removeFromArray array index =
         array
 
 
+
+
 -- VIEW
 
 
@@ -127,94 +118,96 @@ view model =
   case model of
       NoSearch searchParams ->
           div [ class "container" ]
-              [ h2 [] [ text "Select origin(s)" ]
-              , ul []
-                  ( toIndexedList searchParams.origins |> List.map
-                      (\(index, l) -> li []
-                          [ div [ style "display" "flex"]
-                              [ viewInput "text" "Origin" l (UpdateOrigin index)
-                              , if length searchParams.origins > 1 then
-                                    (button [ onClick (RemoveOrigin index) ] [ text "X" ])
-                                else
-                                    (button
-                                        [ attribute "disabled" ""
-                                        , onClick (NoOp) ]
-                                        [ text "X"
-                                        ]
-                                    )
-                              ]
-                          ]
-                      )
-                  )
-              , button [ onClick AddOrigin ] [ text "Add origin" ]
-              , viewInput "text" "Departure Date" searchParams.departureDate UpdateDepartureDate
-              , button [ onClick SearchFlights ] [ text "Search flights!" ]
+              [ viewSearchForm searchParams
               ]
 
       WithSearch searchParams searchResult ->
           div [ class "container" ]
-              [ h2 [] [ text "Select origin(s)" ]
-              , ul []
-                    ( toIndexedList searchParams.origins |> List.map
-                        (\(index, l) -> li []
-                            [ div [ style "display" "flex"]
-                                [ viewInput "text" "Origin" l (UpdateOrigin index)
-                                , if length searchParams.origins > 1 then
-                                    (button [ onClick (RemoveOrigin index) ] [ text "X" ])
-                                else
-                                    (button
-                                        [ attribute "disabled" ""
-                                        , onClick (NoOp) ]
-                                        [ text "X"
-                                        ]
-                                    )
-                              ]
-                            ]
-                        )
-                    )
-              , button [ onClick AddOrigin ] [ text "Add origin" ]
-              , viewInput "date" "Departure Date" searchParams.departureDate UpdateDepartureDate
-              , button [ onClick SearchFlights ] [ text "Search flights!" ]
+              [ viewSearchForm searchParams
               , div [ style "margin-top" "20px" ]
-                [ case searchResult of
-                    Failure ->
-                        text "Something went wrong!"
-
-                    Loading ->
-                        div [ class "lds-roller" ]
-                            [ div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            , div []
-                                []
-                            ]
-
-                    Success results ->
-                        div []
-                        [ h2 [] [ text "Found combined flights" ]
-                        , ul []
-                            (List.map
-                                (\result -> li []
-                                    [ div []
-                                        [ p [] [ text (result.destination ++ " -> " ++ (String.fromFloat result.totalPrice) ++ " EUR") ]
-                                        ]
-                                    ]
-                                ) results)
-                        ]
+                [ viewSearchResult searchResult
                 ]
               ]
 
+
+viewSearchForm : SearchParams -> Html Msg
+viewSearchForm searchParams =
+    section []
+    [ h2 [] [ text "Select origin(s)" ]
+    , ul []
+      ( toIndexedList searchParams.origins |> List.map
+          (\(index, l) -> li []
+              [ div [ style "display" "flex"]
+                  [ viewInput "text" "Origin" l (UpdateOrigin index)
+                  , if length searchParams.origins > 1 then
+                        (button [ onClick (RemoveOrigin index) ] [ text "X" ])
+                    else
+                        (button
+                            [ attribute "disabled" ""
+                            , onClick (NoOp) ]
+                            [ text "X"
+                            ]
+                        )
+                  ]
+              ]
+          )
+      )
+    , button [ onClick AddOrigin ] [ text "Add origin" ]
+    , viewInput "text" "Departure Date" searchParams.departureDate UpdateDepartureDate
+    , button
+        [ onClick SearchFlights
+        , class "full-width"
+        ]
+        [ text "Search flights!" ]
+    ]
+
+
+viewSearchResult : SearchResult -> Html Msg
+viewSearchResult searchResult =
+    case searchResult of
+        Failure ->
+            p []
+              [ text "Something went wrong, please retry"
+              , span
+                [ onClick SearchFlights
+                , class "retry-icon"
+                ]
+                [ text (" " ++ fromChar (Char.fromCode 8635)) ]
+              ]
+
+        Loading ->
+            viewLoader
+
+        Success results ->
+            div []
+            [ h2 [] [ text "Found combined flights" ]
+            , ul []
+                (List.map
+                    (\result -> li []
+                        [ div
+                            [ class "flight-result"
+                            ]
+                            [ h5 [] [ text result.destination ]
+                            , h5 [] [ text ((String.fromFloat result.averagePrice) ++ " " ++ (fromChar (Char.fromCode 8364)) ++ " / person") ]
+                            ]
+                        ]
+                    ) results)
+            ]
+
+
+
+viewLoader : Html msg
+viewLoader =
+    div [ class "lds-roller" ]
+        [ div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        ]
 
 
 viewInput : String -> String -> String -> (String -> msg) -> Html msg

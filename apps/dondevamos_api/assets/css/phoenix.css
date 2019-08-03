@@ -161,6 +161,20 @@ ul {
 
 
 
+/* Flights results */
+.flight-result {
+  display: flex;
+  justify-content: space-between;
+}
+
+.retry-icon:hover {
+  font-weight: bolder;
+}
+
+.full-width {
+  width: 100%;
+}
+
 /* Headers */
 header {
   width: 100%;
