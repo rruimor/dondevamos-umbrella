@@ -7,6 +7,8 @@ import Http
 import Json.Decode exposing (Decoder, field)
 import String exposing (fromChar)
 import Url.Builder exposing (absolute, toQuery)
+import Date exposing (Date, day, month, weekday, year)
+import DatePicker exposing (DateEvent(..), defaultSettings)
 
 
 
@@ -25,26 +27,43 @@ main =
 
 -- MODEL
 
-type Model
-    = NoSearch SearchParams
-    | WithSearch SearchParams SearchResult
+type alias Model =
+    { searchForm: SearchForm
+    , searchResults: SearchResult
+    , datePicker: DatePicker.DatePicker
+    }
 
 
-type alias SearchParams =
+type alias SearchForm =
     { origins: Array String
-    , departureDate: String
+    , departureDate: Maybe Date
     }
 
 type SearchResult
-    = Failure
+    = Halt
+    | Failure
     | Loading
     | Success (List FlightResult)
 
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  (NoSearch (SearchParams (Array.fromList [""]) ""), Cmd.none)
+  let
+      ( datePicker, datePickerFx ) =
+          DatePicker.init
+  in
+  ({ searchForm = (SearchForm (Array.fromList [""]) Nothing)
+   , searchResults = Halt
+   , datePicker = datePicker
+  }, Cmd.map ToDatePicker datePickerFx)
 
+
+settings : DatePicker.Settings
+settings =
+    { defaultSettings
+    | placeholder = "Departure date"
+    , dateFormatter = Date.format "yyyy-MM-dd"
+    }
 
 
 
@@ -55,49 +74,56 @@ type Msg
   = UpdateOrigin Int String
   | AddOrigin
   | RemoveOrigin Int
-  | UpdateDepartureDate String
   | SearchFlights
   | GotFlights (Result Http.Error (List FlightResult))
   | NoOp
+  | ToDatePicker DatePicker.Msg
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
-  let
-    formParams =
-        case model of
-            NoSearch searchParams ->
-                searchParams
-
-            WithSearch searchParams _ ->
-                searchParams
-
-  in
+update msg ({ searchForm, searchResults, datePicker } as model) =
   case msg of
     UpdateOrigin index origin ->
-        (NoSearch { formParams | origins = set index origin formParams.origins }, Cmd.none)
+        ({ model | searchForm = { searchForm | origins = set index origin searchForm.origins } }, Cmd.none)
 
     AddOrigin ->
-        (NoSearch { formParams | origins = push "" formParams.origins }, Cmd.none)
+        ({ model | searchForm = { searchForm | origins = push "" searchForm.origins } }, Cmd.none)
 
     RemoveOrigin index ->
-        (NoSearch { formParams | origins = removeFromArray formParams.origins index }, Cmd.none)
-
-    UpdateDepartureDate newDepartureDate ->
-        (NoSearch { formParams | departureDate = newDepartureDate}, Cmd.none)
+        ({ model | searchForm = { searchForm | origins = removeFromArray searchForm.origins index } }, Cmd.none)
 
     SearchFlights ->
-        (WithSearch formParams Loading, getFlights formParams)
+        ({ model | searchResults = Loading }, getFlights searchForm )
 
     GotFlights result ->
         case result of
             Ok flights ->
-                (WithSearch formParams (Success flights), Cmd.none)
+                ({ model | searchResults = (Success flights) }, Cmd.none)
             Err _ ->
-                (WithSearch formParams Failure, Cmd.none)
+                ({ model | searchResults = Failure }, Cmd.none)
 
     NoOp ->
            (model, Cmd.none)
+
+    ToDatePicker subMsg ->
+        let
+            ( newDatePicker, dateEvent ) =
+                DatePicker.update settings subMsg datePicker
+
+            newDate =
+                case dateEvent of
+                    Picked changedDate ->
+                        Just changedDate
+
+                    _ ->
+                        searchForm.departureDate
+        in
+        ( { model
+            | searchForm = { searchForm | departureDate = newDate }
+            , datePicker = newDatePicker
+          }
+        , Cmd.none
+        )
 
 
 removeFromArray : Array a -> Int -> Array a
@@ -115,31 +141,39 @@ removeFromArray array index =
 
 view : Model -> Html Msg
 view model =
-  case model of
-      NoSearch searchParams ->
-          div [ class "container" ]
-              [ viewSearchForm searchParams
-              ]
-
-      WithSearch searchParams searchResult ->
-          div [ class "container" ]
-              [ viewSearchForm searchParams
-              , div [ style "margin-top" "20px" ]
-                [ viewSearchResult searchResult
-                ]
-              ]
+      div [ class "container" ]
+          [ viewSearchForm model.searchForm model.datePicker
+          , div
+            [ style "margin-top" "20px" ]
+            [ viewSearchResult model.searchResults
+            ]
+          ]
 
 
-viewSearchForm : SearchParams -> Html Msg
-viewSearchForm searchParams =
+viewSearchForm : SearchForm -> DatePicker.DatePicker -> Html Msg
+viewSearchForm searchForm datePicker =
     section []
     [ h2 [] [ text "Select origin(s)" ]
-    , ul []
-      ( toIndexedList searchParams.origins |> List.map
-          (\(index, l) -> li []
-              [ div [ style "display" "flex"]
+    , viewOriginsForm searchForm.origins
+    , button [ onClick AddOrigin ] [ text "Add origin" ]
+    , DatePicker.view searchForm.departureDate settings datePicker
+                |> Html.map ToDatePicker
+    , button
+        [ onClick SearchFlights
+        , class "full-width"
+        ]
+        [ text "Search flights!" ]
+    ]
+
+
+viewOriginsForm : Array String -> Html Msg
+viewOriginsForm origins =
+    div []
+    ( toIndexedList origins |> List.map
+          (\(index, l) ->
+              div [ style "display" "flex"]
                   [ viewInput "text" "Origin" l (UpdateOrigin index)
-                  , if length searchParams.origins > 1 then
+                  , if length origins > 1 then
                         (button [ onClick (RemoveOrigin index) ] [ text "X" ])
                     else
                         (button
@@ -149,34 +183,25 @@ viewSearchForm searchParams =
                             ]
                         )
                   ]
-              ]
+
           )
       )
-    , button [ onClick AddOrigin ] [ text "Add origin" ]
-    , viewInput "text" "Departure Date" searchParams.departureDate UpdateDepartureDate
-    , button
-        [ onClick SearchFlights
-        , class "full-width"
-        ]
-        [ text "Search flights!" ]
-    ]
+
 
 
 viewSearchResult : SearchResult -> Html Msg
 viewSearchResult searchResult =
     case searchResult of
         Failure ->
-            p []
-              [ text "Something went wrong, please retry"
-              , span
-                [ onClick SearchFlights
-                , class "retry-icon"
+            div [ class "centered" ]
+                [ text "Something went wrong, please retry."
                 ]
-                [ text (" " ++ fromChar (Char.fromCode 8635)) ]
-              ]
+
 
         Loading ->
-            viewLoader
+            div [ class "centered" ]
+                [ viewLoader
+                ]
 
         Success results ->
             div []
@@ -188,12 +213,20 @@ viewSearchResult searchResult =
                             [ class "flight-result"
                             ]
                             [ h5 [] [ text result.destination ]
-                            , h5 [] [ text ((String.fromFloat result.averagePrice) ++ " " ++ (fromChar (Char.fromCode 8364)) ++ " / person") ]
+                            , h5 []
+                                 [ text ((formatPrice result.averagePrice) ++ " / person")
+                                 ]
                             ]
                         ]
                     ) results)
             ]
 
+        Halt -> text ""
+
+
+formatPrice : Float -> String
+formatPrice price =
+    (String.fromFloat price) ++ " " ++ (fromChar (Char.fromCode 8364))
 
 
 viewLoader : Html msg
@@ -218,18 +251,27 @@ viewInput t p v toMsg =
 
 -- HTTP
 
-getFlights : SearchParams -> Cmd Msg
+getFlights : SearchForm -> Cmd Msg
 getFlights searchParams =
     Http.get
-    { url = absolute [ "api", "flights" ] [] ++ getFlightsParams searchParams
+    { url = absolute [ "api", "flights" ] [] ++ getFlightsQueryParams searchParams
     , expect = Http.expectJson GotFlights flightsResponseDecoder
     }
 
 
-getFlightsParams : SearchParams -> String
-getFlightsParams searchParams =
+getFlightsQueryParams : SearchForm -> String
+getFlightsQueryParams searchParams =
+    let
+        departureDate =
+            case searchParams.departureDate of
+                Just date ->
+                    Date.format "yyyy-MM-dd" date
+
+                Nothing ->
+                    ""
+    in
     (( toList searchParams.origins ) |> List.map (\l -> Url.Builder.string "origin[]" l))
-    ++ [ Url.Builder.string "departure_date" searchParams.departureDate ]
+    ++ [ Url.Builder.string "departure_date" departureDate ]
     |> toQuery
 
 

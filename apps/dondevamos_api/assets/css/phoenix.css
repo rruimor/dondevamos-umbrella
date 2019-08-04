@@ -66,11 +66,17 @@ select {
 }
 
 .logo-font {
-  font-family: 'Gloria Hallelujah', cursive;
+  font-family: 'Gloria Hallelujah', sans-serif;
 }
 
 ul {
   list-style-type: none;
+}
+
+.centered {
+  display: flex;
+  justify-content: center;
+  align-content: center;
 }
 
 /* LOADER */
