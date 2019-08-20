@@ -7,7 +7,8 @@ defmodule KiwiApi.Flights do
       fly_from: fly_from,
       to: fly_to,
       date_from: date_from |> format_date,
-      date_to: date_to |> format_date
+      date_to: date_to |> format_date,
+      partner: "picky"
     }
     params = Map.merge(params, extra_params)
     fetch!("/flights", params |> camelize_params()).body["data"]

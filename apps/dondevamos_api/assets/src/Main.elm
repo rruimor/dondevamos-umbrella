@@ -145,7 +145,7 @@ view model =
           [ viewSearchForm model.searchForm model.datePicker
           , div
             [ style "margin-top" "20px" ]
-            [ viewSearchResult model.searchResults
+            [ viewSearchResults model.searchResults
             ]
           ]
 
@@ -189,8 +189,8 @@ viewOriginsForm origins =
 
 
 
-viewSearchResult : SearchResult -> Html Msg
-viewSearchResult searchResult =
+viewSearchResults : SearchResult -> Html Msg
+viewSearchResults searchResult =
     case searchResult of
         Failure ->
             div [ class "centered" ]
@@ -208,20 +208,25 @@ viewSearchResult searchResult =
             [ h2 [] [ text "Found combined flights" ]
             , ul []
                 (List.map
-                    (\result -> li []
-                        [ div
-                            [ class "flight-result"
-                            ]
-                            [ h5 [] [ text result.destination ]
-                            , h5 []
-                                 [ text ((formatPrice result.averagePrice) ++ " / person")
-                                 ]
-                            ]
-                        ]
+                    (\result ->
+                        li []
+                           [ viewTripResult result
+                           ]
                     ) results)
             ]
 
         Halt -> text ""
+
+viewTripResult : FlightResult -> Html Msg
+viewTripResult flightResult =
+    div
+        [ class "flight-result"
+        ]
+        [ h5 [] [ text flightResult.destination ]
+        , h5 []
+             [ text ((formatPrice flightResult.averagePrice) ++ " / person")
+             ]
+        ]
 
 
 formatPrice : Float -> String
