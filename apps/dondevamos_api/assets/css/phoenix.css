@@ -168,9 +168,20 @@ ul {
 
 
 /* Flights results */
-.flight-result {
+.trip__card {
+  border: 0;
+  border-radius: .4rem;
+  box-shadow: 0 1px 2px rgba(60,64,67, 0.3), 0 1px 3px 1px rgba(60,64,67, 0.15);
+  height: 118px;
+  margin: 2px 2px 8px;
+  overflow: hidden;
+  display: flex;
+}
+
+.trip__header {
   display: flex;
   justify-content: space-between;
+  flex: 1 0;
 }
 
 .retry-icon:hover {

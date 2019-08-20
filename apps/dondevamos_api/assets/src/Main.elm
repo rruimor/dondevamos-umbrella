@@ -7,8 +7,9 @@ import Http
 import Json.Decode exposing (Decoder, field)
 import String exposing (fromChar)
 import Url.Builder exposing (absolute, toQuery)
-import Date exposing (Date, day, month, weekday, year)
+import Date exposing (Date)
 import DatePicker exposing (DateEvent(..), defaultSettings)
+import Json.Decode.Pipeline exposing (required)
 
 
 
@@ -43,7 +44,7 @@ type SearchResult
     = Halt
     | Failure
     | Loading
-    | Success (List FlightResult)
+    | Success (List TripResult)
 
 
 init : () -> (Model, Cmd Msg)
@@ -75,7 +76,7 @@ type Msg
   | AddOrigin
   | RemoveOrigin Int
   | SearchFlights
-  | GotFlights (Result Http.Error (List FlightResult))
+  | GotFlights (Result Http.Error (List TripResult))
   | NoOp
   | ToDatePicker DatePicker.Msg
 
@@ -217,15 +218,17 @@ viewSearchResults searchResult =
 
         Halt -> text ""
 
-viewTripResult : FlightResult -> Html Msg
+viewTripResult : TripResult -> Html Msg
 viewTripResult flightResult =
-    div
-        [ class "flight-result"
-        ]
-        [ h5 [] [ text flightResult.destination ]
-        , h5 []
-             [ text ((formatPrice flightResult.averagePrice) ++ " / person")
-             ]
+    div [ class "trip__card" ]
+        [ div [ class "trip__header" ]
+              [ h5 [] [ text flightResult.destination ]
+              , h5 [] [ text ((formatPrice flightResult.averagePrice) ++ " / person") ]
+              ]
+        , div [ class "trip__content" ]
+              [
+
+              ]
         ]
 
 
@@ -260,7 +263,7 @@ getFlights : SearchForm -> Cmd Msg
 getFlights searchParams =
     Http.get
     { url = absolute [ "api", "flights" ] [] ++ getFlightsQueryParams searchParams
-    , expect = Http.expectJson GotFlights flightsResponseDecoder
+    , expect = Http.expectJson GotFlights tripsResponseDecoder
     }
 
 
@@ -280,20 +283,38 @@ getFlightsQueryParams searchParams =
     |> toQuery
 
 
-flightsResponseDecoder : Decoder (List FlightResult)
-flightsResponseDecoder =
-    field "data" (Json.Decode.list flightDecoder)
+tripsResponseDecoder : Decoder (List TripResult)
+tripsResponseDecoder =
+    field "data" (Json.Decode.list tripResultDecoder)
 
-type alias FlightResult =
+type alias TripResult =
     { destination: String
     , totalPrice: Float
     , averagePrice: Float
+    , flights: List Flight
     }
 
-flightDecoder : Decoder FlightResult
-flightDecoder =
-    Json.Decode.map3
-        FlightResult
+tripResultDecoder : Decoder TripResult
+tripResultDecoder =
+    Json.Decode.map4
+        TripResult
             ( field "destination" Json.Decode.string )
             ( field "total_price" Json.Decode.float )
             ( field "average_price" Json.Decode.float )
+            ( field "flights" (Json.Decode.list flightDecoder))
+
+type alias Flight =
+    { cityFrom: String
+    , cityTo: String
+    , departureTimeUtc: Int
+    , arrivalTimeUtc: Int
+    }
+
+flightDecoder : Decoder Flight
+flightDecoder =
+    Json.Decode.succeed
+        Flight
+            |> required "city_from" Json.Decode.string
+            |> required "city_to" Json.Decode.string
+            |> required "d_time_utc" Json.Decode.int
+            |> required "a_time_utc" Json.Decode.int
